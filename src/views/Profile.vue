@@ -7,17 +7,17 @@
       <div class="title">
         <p>プロフィール</p>
       </div>
-        <div class="profile">
-          <div class="flex-profile">
-            <p class="profile-name">{{ name }}</p>
-            <div @click="edit">
-              <button>変更する</button>
-            </div>
+      <div class="profile">
+        <div class="flex-profile">
+          <p class="profile-name">{{ name }}</p>
+          <div @click="edit">
+            <button>変更する</button>
           </div>
-          <p class="text" v-if="active">{{ profile }}</p>
-          <input type="text" v-model="profile" v-else />
         </div>
-        <Message />
+        <p class="text" v-if="active">{{ profile }}</p>
+        <input type="text" v-model="profile" v-else />
+      </div>
+      <Message />
     </div>
   </div>
 </template>
@@ -25,18 +25,35 @@
 <script>
 import SideNavi from "../components/SideNavi";
 import Message from "../components/Message";
+import axios from "axios";
 export default {
   data() {
     return {
       active: true,
-      name: "よこた",
-      profile: "宜しくお願いいたします。"
+      name: this.$store.state.user.name,
+      profile: this.$store.state.user.profile,
     };
+  },
+  methods: {
+    edit() {
+      if (!this.active) {
+        axios
+          .put("https://vast-caverns-57365.herokuapp.com/api/user", {
+            email: this.$store.state.user.email,
+            profile: this.profile,
+          })
+          .then((response) => {
+            this.$store.commit("changeUserData", this.profile);
+            console.log(response);
+          });
+      }
+      this.active = !this.active;
+    },
   },
   components: {
     SideNavi,
-    Message
-  }
+    Message,
+  },
 };
 </script>
 
@@ -82,5 +99,8 @@ button {
   border-radius: 25px;
   display: block;
   margin: 0 0 0 auto;
+}
+input {
+  color: black;
 }
 </style>

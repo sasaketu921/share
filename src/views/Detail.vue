@@ -7,20 +7,20 @@
       <div class="title">
         <p>ホーム</p>
       </div>
-      <Message/>
+      <Message :id="id" />
       <div class="comment">
         <div class="comment-title">
-          <p>コメント </p>
+          <p>コメント</p>
         </div>
         <div class="message" v-for="(comment, index) in data" :key="index">
           <div class="flex">
-            <p class="name">{{ comment.name}}</p>
+            <p class="name">{{ comment.comment_user.name }}</p>
           </div>
           <div>
-            <p class="text">{{ comment.content }}</p>
+            <p class="text">{{ comment.comment.content }}</p>
           </div>
         </div>
-        <input type="text" v-model="content" />
+        <input v-model="content" type="text" />
         <div @click="send">
           <button>コメント</button>
         </div>
@@ -32,18 +32,47 @@
 <script>
 import SideNavi from "../components/SideNavi";
 import Message from "../components/Message";
+import axios from "axios";
 export default {
   props: ["id"],
   data() {
     return {
       content: "",
-      data: [{ name: "三郎", like: [], share: "初めまして"}]
-    }
+      data: "",
+    };
+  },
+  methods: {
+    send() {
+      axios
+        .post("https://vast-caverns-57365.herokuapp.com/api/comment", {
+          share_id: this.id,
+          user_id: this.$store.state.user.id,
+          content: this.content,
+        })
+        .then((response) => {
+          console.log(response);
+          this.content = "";
+          this.$router.go({
+            path: this.$router.currentRoute.path,
+            force: true,
+          });
+        });
+    },
+    comment() {
+      axios
+        .get("https://vast-caverns-57365.herokuapp.com/api/shares/" + this.id)
+        .then((response) => {
+          this.data = response.data.comment;
+        });
+    },
+  },
+  created() {
+    this.comment();
   },
   components: {
     SideNavi,
-    Message
-  }
+    Message,
+  },
 };
 </script>
 
@@ -68,6 +97,9 @@ export default {
   font-size: 20px;
   font-weight: bold;
 }
+.share-message {
+  border-bottom: 1px solid white;
+}
 .comment-title {
   text-align: center;
   padding-top: 10px;
@@ -78,14 +110,18 @@ export default {
 .comment input {
   width: 95%;
   height: 30px;
-  margin: 20px 0 15px 10px;
+  margin-top: 20px;
+  margin-bottom: 15px;
+  margin-left: 10px;
   border-radius: 10px;
   border: 1px solid white;
   background-color: #15202b;
   color: white;
 }
 .message {
-  padding: 10px 0 10px 10px;
+  padding-top: 10px;
+  padding-left: 10px;
+  padding-bottom: 10px;
   border-bottom: 1px solid white;
   border-left: 1px solid white;
 }
